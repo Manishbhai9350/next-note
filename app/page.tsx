@@ -30,7 +30,7 @@ export default function Home() {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [timeOutId, setTimeOutId] = useState(null);
+  const [timeOutId, setTimeOutId] = useState<any>(null);
   const [filter, setFilter] = useState("");
   const [notes, setNotes] = useState([]);
   const [data, setData] = useState([...notes]);
@@ -78,7 +78,7 @@ export default function Home() {
     if (!isTyping) {
       setIsTyping(true);
     }
-    const id = setTimeout(() => {
+    const id:any = setTimeout(() => {
       setIsTyping(false);
       setFilter(search);
     }, 400);
@@ -87,7 +87,7 @@ export default function Home() {
 
   useEffect(() => {
     if (filter.length > 0) {
-      const filtered = notes.filter((note) => {
+      const filtered = notes.filter((note:any) => {
         return (
           note.title.toLowerCase().includes(filter.toLowerCase()) ||
           note.description.toLowerCase().includes(filter.toLowerCase())
@@ -114,7 +114,7 @@ export default function Home() {
     }
   };
 
-  const handleDelete = async (id, setIsDeleting) => {
+  const handleDelete = async (id:any, setIsDeleting:any) => {
     try {
       setIsDeleting(true);
       const response = await axios.post("/api/note/delete", { id });
@@ -137,7 +137,7 @@ export default function Home() {
     setIsUpdating,
     setU_Description,
     setU_Title,
-  }) => {
+  }:any) => {
     setIsUpdating(true);
     const data = { checkedDescription, checkedTitle, title, description, id };
     const response = await axios.post("/api/note/update", data);
@@ -151,6 +151,14 @@ export default function Home() {
       fetchNotes();
     }
   };
+
+
+  interface NoteStructure {
+    title:string;
+    description:string;
+    _id:string;
+    createdAt:string;
+  }
 
   return (
     <main className="h-screen w-screen">
@@ -199,7 +207,7 @@ export default function Home() {
               style={{ width: "100vw" }}
               className="notes mt-4 min-h-44 lg:grid-cols-3 place-items-center md:grid-cols-2  grid-cols-1 py-5 grid "
             >
-              {notes.map((note, i) => {
+              {notes.map((note:NoteStructure, i) => {
                 return (
                   <Note
                     key={i}

@@ -18,7 +18,7 @@ interface toastItems {
   ok:boolean;
 }
 
-const Nav = ({ search, setSearch , userDetails  }:{search:string,setSearch:(value:string) => {},userDetails:any}) => {
+const Nav = ({ search, setSearch , userDetails  }:any) => {
   const { height, width } = useWindow();
   const [isFocus, setIsFocus] = useState(false)
   const inputRef = useRef<HTMLInputElement | null >(null)

@@ -12,7 +12,7 @@ const sign = (data:SignProps) => {
     return jwt.sign(data,JWT_SECRET)
 }
 
-const verify = (token:string) => {
+const verify = (token:any) => {
     return jwt.verify(token,JWT_SECRET) || null
 }
 

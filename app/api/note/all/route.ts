@@ -5,6 +5,8 @@ import { NoteModel } from "../../_models/note.model";
 
 
 connect()
+
+
 export async function POST(req:NextRequest){
     try {
         const token =  req.cookies.get('token')?.value
@@ -15,7 +17,7 @@ export async function POST(req:NextRequest){
                 ok:false
             })
         }
-        const decoded = verify(token)
+        const decoded:any = verify(token)
         const {id} = decoded
         if (!id) {
             return NextResponse.json({

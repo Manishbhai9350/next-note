@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const note = await NoteModel.findById(id)
 
     if (checkedDescription && checkedTitle  ) {
-        if (description?.length > 0 && title?.length > 0) {
+        if (description?.length! > 0 && title?.length! > 0) {
           note.description = description
           note.title = title
         } else {

@@ -34,8 +34,8 @@ export async function POST(req:NextRequest){
             })
         }
 
-        const token = req.cookies.get('token')?.value
-        const {id} = verify(token)
+        const token:any = req.cookies.get('token')?.value
+        const {id}:any = verify(token)
         if (!id) {
            return NextResponse.json({
             message:'Invalid User',
@@ -44,7 +44,7 @@ export async function POST(req:NextRequest){
            })
         }
 
-        const User:UserDetails = await UserModel.findById(id)
+        const User:any = await UserModel.findById(id)
         if (!User) {
             return NextResponse.json({
                 message:'Invalid User',

@@ -29,7 +29,7 @@ export async function POST(req:NextRequest){
             })
         }
 
-        const {id:UserID} = decoded
+        const {id:UserID}:any = decoded
         const User = await UserModel.findById(UserID)
         const Note = await NoteModel.findByIdAndDelete(NoteId)
         let NoteIdx = User.notes.indexOf(NoteId)

@@ -30,7 +30,7 @@ export const POST = async (req:NextRequest) => {
             })
         }
 
-        const ExistUser:User = await UserModel.findOne({email})
+        const ExistUser:any = await UserModel.findOne({email})
         if (!ExistUser) {
             return  NextResponse.json({
                 message:"Invalid Credentials",

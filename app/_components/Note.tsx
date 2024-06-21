@@ -14,9 +14,10 @@ import { Label } from "@/components/ui/label";
 interface NoteProps {
     title:string;
     description:string;
-    onDelete:(id:string)=>void;
-    handleUpdate:()=>void;
-    idx:number;
+    onDelete:(id:any,setIsDeleting:any)=>void;
+    handleUpdate:(data:any)=>void;
+    creationData:string;
+    id:string;
 }
 
 const Note = ({title,description,onDelete,id,handleUpdate,creationData}:NoteProps) => {
