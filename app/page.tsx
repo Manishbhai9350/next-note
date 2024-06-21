@@ -1,112 +1,226 @@
+"use client";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import Nav from "./_components/Nav";
+import Note from "./_components/Note";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { DialogClose, DialogTitle } from "@radix-ui/react-dialog";
+import { Textarea } from "@/components/ui/textarea";
+import useWindow from "@/hooks/useWindow";
+import { Plus } from "lucide-react";
+import Loading from "./_components/Loading";
+import axios from "axios";
+import toast, { Toaster } from "react-hot-toast";
+
+interface toastItems {
+  data: string;
+  ok: boolean;
+}
 
 export default function Home() {
+  const [addNote, setAddNote] = useState(false);
+  const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [timeOutId, setTimeOutId] = useState(null);
+  const [filter, setFilter] = useState("");
+  const [notes, setNotes] = useState([]);
+  const [data, setData] = useState([...notes]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [isOpenDialog, setIsOpenDialog] = useState(false);
+  const [search, setSearch] = useState("");
+  const [userDetails, setUserDetails] = useState(null);
+
+  const toastIt = ({ data, ok }: toastItems) => {
+    if (ok) {
+      setIsOpenDialog(false);
+      toast.success(data);
+    } else {
+      toast.error(data);
+    }
+  };
+
+  const fetchNotes = async () => {
+    try {
+      const response = await axios.post("/api/note/all");
+      const resData = response.data;
+      let resNotes = resData?.notes || []
+      setData(resNotes);
+      setNotes(resNotes);
+      if (resNotes.length <= 0) {
+        toast('Create Notes',{
+          icon:'📒'
+        });
+      }
+      if (resData.ok) {
+        setUserDetails(resData.userDetails);
+        toastIt({ data: resData.message, ok: resData.ok });
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNotes();
+  }, []);
+
+  useEffect(() => {
+    clearTimeout(timeOutId);
+    if (!isTyping) {
+      setIsTyping(true);
+    }
+    const id = setTimeout(() => {
+      setIsTyping(false);
+      setFilter(search);
+    }, 400);
+    setTimeOutId(id);
+  }, [search]);
+
+  useEffect(() => {
+    if (filter.length > 0) {
+      const filtered = notes.filter((note) => {
+        return (
+          note.title.toLowerCase().includes(filter.toLowerCase()) ||
+          note.desc.toLowerCase().includes(filter.toLowerCase())
+        );
+      });
+      setNotes(filtered);
+    } else {
+      setNotes([...data]);
+    }
+  }, [filter]);
+
+  const handleCreation = async () => {
+    setIsLoading(true);
+    const response = await axios.post("/api/note/create", {
+      title,
+      description: desc,
+    });
+    setIsLoading(false);
+    toastIt({ data: response.data.message, ok: response.data.ok });
+    if (response.data.ok) {
+      fetchNotes();
+      setTitle('')
+      setDesc('')
+    }
+  };
+
+  const handleDelete =  async (id,setIsDeleting) => {
+    try {
+      setIsDeleting(true)
+      const response = await axios.post("/api/note/delete",{id});
+      setIsDeleting(false)
+      const resData = response.data
+      toastIt({ data: resData.message, ok: resData.ok});
+      if (resData.ok) {
+        fetchNotes();
+      }
+    } catch (error) {
+      
+    }
+  };
+
+  const handleUpdate = async ({
+    checkedDescription,
+    checkedTitle,
+    title,
+    description,
+    id,
+    setUpdateDialog,
+    setIsUpdating
+  }) => {
+    setIsUpdating(true)
+    const data = {checkedDescription,
+      checkedTitle,
+      title,
+      description,
+      id}
+      const response = await axios.post('/api/note/update',data)
+      const resData = response.data 
+    setIsUpdating(false)
+    setUpdateDialog(false)
+    toastIt({data:resData.message,ok:resData.ok})
+    if (resData.ok) {
+      fetchNotes()
+    }
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
+    <main className="h-screen w-screen">
+      <Toaster />
+      <div className="absolute right-3 bottom-3 ">
+        <Dialog open={isOpenDialog} onOpenChange={setIsOpenDialog}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus />
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="pt-4">
+            <DialogHeader>
+              <DialogTitle>
+                <p className="w-full text-center uppercase">Enter Info</p>
+              </DialogTitle>
+              <Input
+                className="border border-zinc-400"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Title"
+              />
+            </DialogHeader>
+            <DialogDescription>
+              <Textarea
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+                placeholder="Description"
+              />
+            </DialogDescription>
+            <Button
+              disabled={isLoading}
+              className="w-full"
+              onClick={handleCreation}
+            >
+              {isLoading ? <Loading /> : "Create"}
+            </Button>
+          </DialogContent>
+        </Dialog>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
+      <Nav userDetails={userDetails} search={search} setSearch={setSearch} />
+      <div className="w-screen min-h-[100vh] bg-zinc-200 flex ">
+        <section className="content w-[100vw]  flex flex-col justify-start pt-20 items-end mt-20]">
+          {notes.length > 0 ? (
+            <div
+              style={{ width: "100vw" }}
+              className="notes mt-4 min-h-44 lg:grid-cols-3 place-items-center md:grid-cols-2  grid-cols-1 py-5 grid "
+            >
+              {notes.map((e, i) => {
+                return (
+                  <Note
+                    key={i}
+                    handleUpdate={handleUpdate}
+                    onDelete={handleDelete}
+                    id={e._id}
+                    title={e.title}
+                    description={e.description}
+                  />
+                );
+              })}
+            </div>
+          ) : (
+            <div className="w-full h-32 flex-col  flex items-center justify-center ">
+              <Image src="/note.png" height={80} width={80} alt="note" />
+              <h1>No Notes Here</h1>
+            </div>
+          )}
+        </section>
       </div>
     </main>
   );

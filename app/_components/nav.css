@@ -1,0 +1,20 @@
+nav {
+    padding: 10px;
+    justify-content: flex-start;
+    gap: 25rem;
+}
+
+.input {
+    min-width: 400px ;
+    max-width: 450px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+    padding-inline: 10px;
+}
+
+.input .inp-wrapper {
+    width: 84%;
+}
