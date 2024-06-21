@@ -52,12 +52,12 @@ export default function Home() {
     try {
       const response = await axios.post("/api/note/all");
       const resData = response.data;
-      let resNotes = resData?.notes || []
+      let resNotes = resData?.notes || [];
       setData(resNotes);
       setNotes(resNotes);
       if (resNotes.length <= 0) {
-        toast('Create Notes',{
-          icon:'📒'
+        toast("Create Notes", {
+          icon: "📒",
         });
       }
       if (resData.ok) {
@@ -90,7 +90,7 @@ export default function Home() {
       const filtered = notes.filter((note) => {
         return (
           note.title.toLowerCase().includes(filter.toLowerCase()) ||
-          note.desc.toLowerCase().includes(filter.toLowerCase())
+          note.description.toLowerCase().includes(filter.toLowerCase())
         );
       });
       setNotes(filtered);
@@ -109,24 +109,22 @@ export default function Home() {
     toastIt({ data: response.data.message, ok: response.data.ok });
     if (response.data.ok) {
       fetchNotes();
-      setTitle('')
-      setDesc('')
+      setTitle("");
+      setDesc("");
     }
   };
 
-  const handleDelete =  async (id,setIsDeleting) => {
+  const handleDelete = async (id, setIsDeleting) => {
     try {
-      setIsDeleting(true)
-      const response = await axios.post("/api/note/delete",{id});
-      setIsDeleting(false)
-      const resData = response.data
-      toastIt({ data: resData.message, ok: resData.ok});
+      setIsDeleting(true);
+      const response = await axios.post("/api/note/delete", { id });
+      setIsDeleting(false);
+      const resData = response.data;
+      toastIt({ data: resData.message, ok: resData.ok });
       if (resData.ok) {
         fetchNotes();
       }
-    } catch (error) {
-      
-    }
+    } catch (error) {}
   };
 
   const handleUpdate = async ({
@@ -136,21 +134,21 @@ export default function Home() {
     description,
     id,
     setUpdateDialog,
-    setIsUpdating
+    setIsUpdating,
+    setU_Description,
+    setU_Title,
   }) => {
-    setIsUpdating(true)
-    const data = {checkedDescription,
-      checkedTitle,
-      title,
-      description,
-      id}
-      const response = await axios.post('/api/note/update',data)
-      const resData = response.data 
-    setIsUpdating(false)
-    setUpdateDialog(false)
-    toastIt({data:resData.message,ok:resData.ok})
+    setIsUpdating(true);
+    const data = { checkedDescription, checkedTitle, title, description, id };
+    const response = await axios.post("/api/note/update", data);
+    const resData = response.data;
+    setIsUpdating(false);
+    setUpdateDialog(false);
+    toastIt({ data: resData.message, ok: resData.ok });
     if (resData.ok) {
-      fetchNotes()
+      setU_Title('')
+      setU_Description('')
+      fetchNotes();
     }
   };
 
@@ -201,15 +199,16 @@ export default function Home() {
               style={{ width: "100vw" }}
               className="notes mt-4 min-h-44 lg:grid-cols-3 place-items-center md:grid-cols-2  grid-cols-1 py-5 grid "
             >
-              {notes.map((e, i) => {
+              {notes.map((note, i) => {
                 return (
                   <Note
                     key={i}
                     handleUpdate={handleUpdate}
                     onDelete={handleDelete}
-                    id={e._id}
-                    title={e.title}
-                    description={e.description}
+                    creationData={note.createdAt}
+                    id={note._id}
+                    title={note.title}
+                    description={note.description}
                   />
                 );
               })}

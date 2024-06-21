@@ -19,7 +19,7 @@ interface NoteProps {
     idx:number;
 }
 
-const Note = ({title,description,onDelete,id,handleUpdate}:NoteProps) => {
+const Note = ({title,description,onDelete,id,handleUpdate,creationData}:NoteProps) => {
     const [c_Titile,setC_Titile] = useState(true)
     const [c_Description, setC_Description] = useState(true)
     const [u_Title, setU_Title] = useState(title)
@@ -28,6 +28,7 @@ const Note = ({title,description,onDelete,id,handleUpdate}:NoteProps) => {
     const [isDeleting, setIsDeleting] = useState(false)
     const [updateDialog, setUpdateDialog] = useState(false)
     const [isUpdating, setIsUpdating] = useState(false)
+    const date = new Date(creationData)
 
   return (
     <div style={{width:width < 600 ? 250 : 350,marginBlock:10}} className="h-[200px]">
@@ -36,7 +37,9 @@ const Note = ({title,description,onDelete,id,handleUpdate}:NoteProps) => {
                 <CardTitle className="flex capitalize">
                     {title}
                 </CardTitle>
-                <p className="text-xs text-zinc-400">20/6/2024</p>
+                <p className="text-xs text-zinc-400">
+                    {date.getDate() }/{date.getMonth() + 1}/{date.getFullYear()}
+                </p>
             </CardHeader>
             <CardContent>
                 <CardDescription> {description}</CardDescription>
@@ -84,7 +87,9 @@ const Note = ({title,description,onDelete,id,handleUpdate}:NoteProps) => {
                                 description: u_Description,
                                 id,
                                 setUpdateDialog,
-                                setIsUpdating
+                                setIsUpdating,
+                                setU_Description,
+                                setU_Title,
                             })
                         }}
                         disabled={(!c_Description && !c_Titile) || isUpdating}

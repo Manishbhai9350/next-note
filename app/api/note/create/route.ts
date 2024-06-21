@@ -25,7 +25,6 @@ interface UserDetails {
 export async function POST(req:NextRequest){
     try {
         const {title,description}:noteDetails = await req.json()
-        console.log(title,description)
         
         if (!title || !description) {
             return NextResponse.json({
@@ -53,9 +52,6 @@ export async function POST(req:NextRequest){
                 ok:false
             })
         }
-
-        console.log(User)
-
         const Note = await NoteModel.create({title,description,user:User._id}) 
 
         User.notes.push(Note._id)
